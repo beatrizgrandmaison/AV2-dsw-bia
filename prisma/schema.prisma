@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Prioridade {
+  BAIXA
+  MEDIA
+  ALTA
+}
+
+enum StatusChamado {
+  ABERTO
+  EM_ANDAMENTO
+  ENCERRADO
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senha     String
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model Ticket {
+  id         Int           @id @default(autoincrement())
+  titulo     String
+  descricao  String
+  prioridade Prioridade    @default(MEDIA)
+  status     StatusChamado @default(ABERTO)
+  solucao    String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  userId     Int
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
