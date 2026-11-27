@@ -19,7 +19,9 @@ export async function apiFetch(endpoint, options = {}) {
     throw new Error('Falha de comunicação com o servidor. Verifique sua conexão.');
   }
 
-  if (response.status === 401 && !endpoint.includes('/auth/login')) {
+  const isAuthRequest = endpoint.includes('/auth/login') || endpoint.includes('/auth/register');
+
+  if (response.status === 401 && !isAuthRequest) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.dispatchEvent(new Event('auth:expired'));
@@ -28,9 +30,13 @@ export async function apiFetch(endpoint, options = {}) {
 
   if (response.status === 204) return null;
 
-  const data = await response.json();
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json')
+    ? await response.json()
+    : null;
+
   if (!response.ok) {
-    throw new Error(data.erro || 'Erro ao processar requisição.');
+    throw new Error(data?.erro || data?.mensagem || 'Erro ao processar requisição.');
   }
 
   return data;
